@@ -145,6 +145,8 @@ function renderDashboard() {
   const recordsDiv = document.getElementById(`records-${currentEmployee}`);
   recordsDiv.innerHTML = "";
   employeeRecords.forEach(r => {
+    const canRemove = Boolean(currentEmployee && currentEmployee === r.Employee);
+    
     recordsDiv.innerHTML += `
       <div class="dashboard-card">
         <div><strong>${r.Date}</strong></div>
