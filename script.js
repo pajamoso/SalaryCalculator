@@ -118,25 +118,22 @@ function renderDashboard() {
     employeeSection.classList.add("employee-section");
 
     // Add a header with minimize toggle
-    employeeSection.innerHTML = `
-      <div class="dashboard-card">
-        <div class="dashboard-title d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center gap-2">
-            ${currentEmployee}
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-sm btn-outline-primary" onclick="toggleSection('${currentEmployee}')">
-              Toggle
-            </button>
-            <button class="btn btn-sm btn-outline-warning" onclick="editEmployee('${currentEmployee}')">
-              Edit
-            </button>
-          </div>
+  employeeSection.innerHTML = `
+    <div class="dashboard-card">
+      <div class="dashboard-title d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          ${currentEmployee}
         </div>
-        <div id="subtotal-${currentEmployee}" class="amount"></div>
-        <div id="records-${currentEmployee}"></div>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-primary" onclick="toggleSection('${currentEmployee}')">Toggle</button>
+          <button class="btn btn-sm btn-outline-warning" onclick="editEmployee('${currentEmployee}')">Edit</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteDashboard('${currentEmployee}')">Delete</button>
+        </div>
       </div>
-    `;
+      <div id="subtotal-${currentEmployee}" class="amount"></div>
+      <div id="records-${currentEmployee}"></div>
+    </div>
+  `;
     dashboard.appendChild(employeeSection);
   }
 
@@ -214,6 +211,7 @@ function editEmployee(employee) {
   // Re-enable name field and set current employee
   const nameInput = document.getElementById("employeeName");
   nameInput.value = employee;
+  nameInput.disabled = true;
   currentEmployee = employee;
 
   // Populate inputs with last record values
@@ -241,6 +239,36 @@ function removeRecord(id) {
 
   if (confirm(`Remove record on ${rec.Date} (${rec.TimeIn} - ${rec.TimeOut}) for ${rec.Employee}?`)) {
     records.splice(idx, 1);
-    renderDashboard();
+
+    // Check if employee has any records left
+    const employeeRecords = records.filter(r => r.Employee === rec.Employee);
+    if (employeeRecords.length === 0) {
+      const section = document.getElementById(`section-${rec.Employee}`);
+      if (section) section.remove();
+    } else {
+      renderDashboard();
+    }
+  }
+}
+
+function deleteDashboard(employee) {
+  if (confirm(`Delete all records and dashboard for ${employee}?`)) {
+    // Remove all records for this employee
+    records = records.filter(r => r.Employee !== employee);
+
+    // Remove the dashboard section
+    const section = document.getElementById(`section-${employee}`);
+    if (section) section.remove();
+
+    // Reset currentEmployee if it was the one deleted
+    if (currentEmployee === employee) {
+      currentEmployee = null;
+      document.getElementById("employeeName").disabled = false;
+      document.getElementById("employeeName").value = "";
+      const dailyRateInput = document.getElementById("dailyRate");
+      dailyRateInput.style.display = "block";
+      dailyRateInput.disabled = false;
+      dailyRateInput.value = "";
+    }
   }
 }
