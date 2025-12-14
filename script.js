@@ -6,8 +6,20 @@ function computeSalary() {
   const name = nameInput.value.trim();
   const timeIn = document.getElementById("timeIn").value;
   const timeOut = document.getElementById("timeOut").value;
-  const dailyRate = parseFloat(document.getElementById("dailyRate").value);
   const shiftDate = document.getElementById("shiftDate").value;
+
+  let dailyRate;
+  const dailyRateInput = document.getElementById("dailyRate");
+
+  if (!dailyRateInput.disabled) {
+    // First entry for employee
+    dailyRate = parseFloat(dailyRateInput.value);
+  } else {
+    // Succeeding entries, reuse last stored rate
+    const employeeRecords = records.filter(r => r.Employee === currentEmployee);
+    dailyRate = parseFloat(employeeRecords[employeeRecords.length - 1].DailyRate);
+  }
+
 
   if (!name || !timeIn || !timeOut || !shiftDate || isNaN(dailyRate) || dailyRate <= 0) {
     alert("Please complete all fields and ensure Daily Rate is a positive number.");
@@ -17,8 +29,12 @@ function computeSalary() {
 if (!currentEmployee) {
   currentEmployee = name;
   nameInput.disabled = true;
-  document.getElementById("dailyRate").disabled = true; // hide/disable daily rate
+
+  const dailyRateInput = document.getElementById("dailyRate");
+  dailyRateInput.disabled = true;
+  dailyRateInput.style.display = "none"; // hide field
 }
+
 
 
   const hoursRendered = calculateRenderedHours(timeIn, timeOut);
@@ -178,8 +194,10 @@ function editEmployee(employee) {
   document.getElementById("shiftDate").value = lastRecord.Date;
   document.getElementById("timeIn").value = lastRecord.TimeIn;
   document.getElementById("timeOut").value = lastRecord.TimeOut;
-  
+
   // Re-enable Daily Rate for editing
-  document.getElementById("dailyRate").disabled = false;
-  document.getElementById("dailyRate").value = lastRecord.DailyRate;
+  const dailyRateInput = document.getElementById("dailyRate");
+  dailyRateInput.disabled = false;
+  dailyRateInput.style.display = "block"; // show again
+  dailyRateInput.value = lastRecord.DailyRate;
 }
