@@ -14,10 +14,12 @@ function computeSalary() {
     return;
   }
 
-  if (!currentEmployee) {
-    currentEmployee = name;
-    nameInput.disabled = true;
-  }
+if (!currentEmployee) {
+  currentEmployee = name;
+  nameInput.disabled = true;
+  document.getElementById("dailyRate").disabled = true; // hide/disable daily rate
+}
+
 
   const hoursRendered = calculateRenderedHours(timeIn, timeOut);
   const hourlyRate = dailyRate / 8;
@@ -36,6 +38,7 @@ function computeSalary() {
     Employee: currentEmployee,
     TimeIn: timeIn,
     TimeOut: timeOut,
+    DailyRate: dailyRate.toFixed(2),
     Hours: hoursRendered.toFixed(2),
     RegularPay: regularPay.toFixed(2),
     OTPay: otPay.toFixed(2),
@@ -80,9 +83,18 @@ function renderDashboard() {
     // Add a header with minimize toggle
     employeeSection.innerHTML = `
       <div class="dashboard-card">
-        <div class="dashboard-title">
-          ${currentEmployee}
-          <button class="btn btn-sm btn-link" onclick="toggleSection('${currentEmployee}')">Toggle</button>
+        <div class="dashboard-title d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            ${currentEmployee}
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline-primary" onclick="toggleSection('${currentEmployee}')">
+              Toggle
+            </button>
+            <button class="btn btn-sm btn-outline-warning" onclick="editEmployee('${currentEmployee}')">
+              Edit
+            </button>
+          </div>
         </div>
         <div id="subtotal-${currentEmployee}" class="amount"></div>
         <div id="records-${currentEmployee}"></div>
@@ -115,6 +127,8 @@ function renderDashboard() {
 function newEmployee() {
   document.getElementById("employeeName").disabled = false;
   document.getElementById("employeeName").value = "";
+  document.getElementById("dailyRate").disabled = false; // re-enable for new employee
+  document.getElementById("dailyRate").value = "";
   currentEmployee = null;
 }
 
@@ -147,3 +161,25 @@ function toggleSection(employee) {
   }
 }
 
+function editEmployee(employee) {
+  // Find the last record for this employee
+  const employeeRecords = records.filter(r => r.Employee === employee);
+  if (employeeRecords.length === 0) return;
+
+  const lastRecord = employeeRecords[employeeRecords.length - 1];
+
+  // Re-enable name field and set current employee
+  const nameInput = document.getElementById("employeeName");
+  nameInput.disabled = false;
+  nameInput.value = employee;
+  currentEmployee = employee;
+
+  // Populate inputs with last record values
+  document.getElementById("shiftDate").value = lastRecord.Date;
+  document.getElementById("timeIn").value = lastRecord.TimeIn;
+  document.getElementById("timeOut").value = lastRecord.TimeOut;
+  
+  // Re-enable Daily Rate for editing
+  document.getElementById("dailyRate").disabled = false;
+  document.getElementById("dailyRate").value = lastRecord.DailyRate;
+}
