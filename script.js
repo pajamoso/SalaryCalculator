@@ -97,7 +97,6 @@ function newEmployee() {
   document.getElementById("employeeName").disabled = false;
   document.getElementById("employeeName").value = "";
   currentEmployee = null;
-  document.getElementById("dashboard").innerHTML = "";
 }
 
 function exportExcel() {
@@ -106,11 +105,17 @@ function exportExcel() {
     return;
   }
 
+  // Create worksheet from records
   const ws = XLSX.utils.json_to_sheet(records);
+
+  // Create workbook and append worksheet
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Salary Records");
+
+  // Trigger download
   XLSX.writeFile(wb, "salary-records.xlsx");
 }
+
 
 function resetInputs() {
   document.getElementById("timeIn").value = "";
