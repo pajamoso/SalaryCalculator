@@ -7,33 +7,30 @@ function computeSalary() {
   const timeIn = document.getElementById("timeIn").value;
   const timeOut = document.getElementById("timeOut").value;
   const dailyRate = parseFloat(document.getElementById("dailyRate").value);
+  const shiftDate = document.getElementById("shiftDate").value;
 
-  if (!name || !timeIn || !timeOut || isNaN(dailyRate) || dailyRate <= 0) {
+  if (!name || !timeIn || !timeOut || !shiftDate || isNaN(dailyRate) || dailyRate <= 0) {
     alert("Please complete all fields and ensure Daily Rate is a positive number.");
     return;
   }
 
-  // Lock employee after first entry
   if (!currentEmployee) {
     currentEmployee = name;
     nameInput.disabled = true;
   }
 
   const hoursRendered = calculateRenderedHours(timeIn, timeOut);
-
-  // Daily rate is for 8 hours, so hourly rate is derived from it
   const hourlyRate = dailyRate / 8;
 
-  // Regular hours capped at 8
   const regularHours = Math.min(8, hoursRendered);
   const otHours = Math.max(0, hoursRendered - 8);
 
   const regularPay = regularHours * hourlyRate;
-  const otPay = otHours * hourlyRate * 1.25; // 125% OT rate
-
+  const otPay = otHours * hourlyRate * 1.25;
   const totalPay = regularPay + otPay;
 
   records.push({
+    Date: shiftDate,
     Employee: currentEmployee,
     TimeIn: timeIn,
     TimeOut: timeOut,
@@ -42,9 +39,11 @@ function computeSalary() {
     OTPay: otPay.toFixed(2),
     Total: totalPay.toFixed(2)
   });
+
   renderDashboard();
   resetInputs();
 }
+
 
 
 function calculateRenderedHours(start, end) {
@@ -84,6 +83,7 @@ function renderDashboard() {
   employeeRecords.forEach(r => {
     dashboard.innerHTML += `
       <div class="dashboard-card">
+        <div><strong>${r.Date}</strong></div>
         <div>${r.Hours} hrs</div>
         <div>Regular: ₱${r.RegularPay}</div>
         <div>OT: ₱${r.OTPay}</div>
@@ -116,4 +116,6 @@ function resetInputs() {
   document.getElementById("timeIn").value = "";
   document.getElementById("timeOut").value = "";
   document.getElementById("dailyRate").value = "";
+  document.getElementById("shiftDate").value = "";
 }
+
