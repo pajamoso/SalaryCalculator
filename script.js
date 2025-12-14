@@ -28,6 +28,8 @@ function computeSalary() {
   const regularPay = regularHours * hourlyRate;
   const otPay = otHours * hourlyRate * 1.25;
   const totalPay = regularPay + otPay;
+  const allowance = 50;
+  const grandTotal = totalPay + allowance;
 
   records.push({
     Date: shiftDate,
@@ -37,7 +39,7 @@ function computeSalary() {
     Hours: hoursRendered.toFixed(2),
     RegularPay: regularPay.toFixed(2),
     OTPay: otPay.toFixed(2),
-    Total: totalPay.toFixed(2)
+    Total: grandTotal.toFixed(2)
   });
 
   renderDashboard();
@@ -67,21 +69,38 @@ function calculateRenderedHours(start, end) {
 
 function renderDashboard() {
   const dashboard = document.getElementById("dashboard");
-  dashboard.innerHTML = "";
-  if (!currentEmployee) return;
 
+  // Find or create a container for this employee
+  let employeeSection = document.getElementById(`section-${currentEmployee}`);
+  if (!employeeSection) {
+    employeeSection = document.createElement("div");
+    employeeSection.id = `section-${currentEmployee}`;
+    employeeSection.classList.add("employee-section");
+
+    // Add a header with minimize toggle
+    employeeSection.innerHTML = `
+      <div class="dashboard-card">
+        <div class="dashboard-title">
+          ${currentEmployee}
+          <button class="btn btn-sm btn-link" onclick="toggleSection('${currentEmployee}')">Toggle</button>
+        </div>
+        <div id="subtotal-${currentEmployee}" class="amount"></div>
+        <div id="records-${currentEmployee}"></div>
+      </div>
+    `;
+    dashboard.appendChild(employeeSection);
+  }
+
+  // Update subtotal and records
   const employeeRecords = records.filter(r => r.Employee === currentEmployee);
   const subtotal = employeeRecords.reduce((s, r) => s + parseFloat(r.Total), 0);
 
-  dashboard.innerHTML += `
-    <div class="dashboard-card">
-      <div class="dashboard-title">${currentEmployee}</div>
-      <div class="amount">Subtotal: ₱${subtotal.toFixed(2)}</div>
-    </div>
-  `;
+  document.getElementById(`subtotal-${currentEmployee}`).innerText = `Subtotal: ₱${subtotal.toFixed(2)}`;
 
+  const recordsDiv = document.getElementById(`records-${currentEmployee}`);
+  recordsDiv.innerHTML = "";
   employeeRecords.forEach(r => {
-    dashboard.innerHTML += `
+    recordsDiv.innerHTML += `
       <div class="dashboard-card">
         <div><strong>${r.Date}</strong></div>
         <div>${r.Hours} hrs</div>
@@ -104,17 +123,12 @@ function exportExcel() {
     alert("No data to export.");
     return;
   }
-
-  // Create worksheet from records
   const ws = XLSX.utils.json_to_sheet(records);
-
-  // Create workbook and append worksheet
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Salary Records");
-
-  // Trigger download
   XLSX.writeFile(wb, "salary-records.xlsx");
 }
+
 
 
 function resetInputs() {
@@ -122,5 +136,14 @@ function resetInputs() {
   document.getElementById("timeOut").value = "";
   document.getElementById("dailyRate").value = "";
   document.getElementById("shiftDate").value = "";
+}
+
+function toggleSection(employee) {
+  const recordsDiv = document.getElementById(`records-${employee}`);
+  if (recordsDiv.style.display === "none") {
+    recordsDiv.style.display = "block";
+  } else {
+    recordsDiv.style.display = "none";
+  }
 }
 
