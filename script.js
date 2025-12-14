@@ -12,29 +12,47 @@ function computeSalary() {
   const dailyRateInput = document.getElementById("dailyRate");
 
   if (!dailyRateInput.disabled) {
-    // First entry for employee
     dailyRate = parseFloat(dailyRateInput.value);
   } else {
-    // Succeeding entries, reuse last stored rate
     const employeeRecords = records.filter(r => r.Employee === currentEmployee);
     dailyRate = parseFloat(employeeRecords[employeeRecords.length - 1].DailyRate);
   }
-
 
   if (!name || !timeIn || !timeOut || !shiftDate || isNaN(dailyRate) || dailyRate <= 0) {
     alert("Please complete all fields and ensure Daily Rate is a positive number.");
     return;
   }
 
-if (!currentEmployee) {
-  currentEmployee = name;
-  nameInput.disabled = true;
+  if (!currentEmployee) {
+    currentEmployee = name;
+    nameInput.disabled = true;
+    dailyRateInput.disabled = true;
+    dailyRateInput.style.display = "none";
+  }
 
-  const dailyRateInput = document.getElementById("dailyRate");
-  dailyRateInput.disabled = true;
-  dailyRateInput.style.display = "none"; // hide field
+// ✅ Duplicate validation
+const duplicate = records.some(r =>
+  r.Employee === currentEmployee &&
+  r.Date === shiftDate &&
+  r.TimeIn === timeIn &&
+  r.TimeOut === timeOut
+);
+
+if (duplicate) {
+  const warning = document.getElementById("warning");
+  warning.textContent = `⚠️ Duplicate entry blocked: ${shiftDate} (${timeIn} - ${timeOut}) for ${currentEmployee}`;
+  warning.classList.remove("d-none");
+
+  warning.classList.add("shake");
+  setTimeout(() => warning.classList.remove("shake"), 500);
+
+  // Optional: auto-hide after 3 seconds
+  setTimeout(() => {
+    warning.classList.add("d-none");
+  }, 3000);
+
+  return;
 }
-
 
 
   const hoursRendered = calculateRenderedHours(timeIn, timeOut);
@@ -58,14 +76,13 @@ if (!currentEmployee) {
     Hours: hoursRendered.toFixed(2),
     RegularPay: regularPay.toFixed(2),
     OTPay: otPay.toFixed(2),
+    Allowance: allowance.toFixed(2),
     Total: grandTotal.toFixed(2)
   });
 
   renderDashboard();
   resetInputs();
 }
-
-
 
 function calculateRenderedHours(start, end) {
   const startTime = new Date(`1970-01-01T${start}`);
@@ -143,7 +160,7 @@ function renderDashboard() {
 function newEmployee() {
   document.getElementById("employeeName").disabled = false;
   document.getElementById("employeeName").value = "";
-  document.getElementById("dailyRate").disabled = false; // re-enable for new employee
+  document.getElementById("dailyRate").style.display = "block"; // re-enable for new employee
   document.getElementById("dailyRate").value = "";
   currentEmployee = null;
 }
