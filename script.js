@@ -152,6 +152,7 @@ function renderDashboard() {
         <div>Regular: ₱${r.RegularPay}</div>
         <div>OT: ₱${r.OTPay}</div>
         <div class="amount">₱${r.Total}</div>
+        ${canRemove ? `<button class="btn btn-sm btn-outline-danger mt-2" onclick="removeRecord('${r.Employee}', ${index})">Remove</button>` : ""}
       </div>
     `;
   });
@@ -204,7 +205,6 @@ function editEmployee(employee) {
 
   // Re-enable name field and set current employee
   const nameInput = document.getElementById("employeeName");
-  nameInput.disabled = false;
   nameInput.value = employee;
   currentEmployee = employee;
 
@@ -218,4 +218,23 @@ function editEmployee(employee) {
   dailyRateInput.disabled = false;
   dailyRateInput.style.display = "block"; // show again
   dailyRateInput.value = lastRecord.DailyRate;
+}
+
+function removeRecord(employee, index) {
+  // Find all records for this employee
+  const employeeRecords = records.filter(r => r.Employee === employee);
+
+  // Remove the specific record by index
+  const recordToRemove = employeeRecords[index];
+  const recordIndex = records.findIndex(r =>
+    r.Employee === recordToRemove.Employee &&
+    r.Date === recordToRemove.Date &&
+    r.TimeIn === recordToRemove.TimeIn &&
+    r.TimeOut === recordToRemove.TimeOut
+  );
+
+  if (recordIndex !== -1) {
+    records.splice(recordIndex, 1);
+    renderDashboard();
+  }
 }
