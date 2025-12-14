@@ -30,29 +30,28 @@ function computeSalary() {
     dailyRateInput.style.display = "none";
   }
 
-// ✅ Duplicate validation
-const duplicate = records.some(r =>
-  r.Employee === currentEmployee &&
-  r.Date === shiftDate &&
-  r.TimeIn === timeIn &&
-  r.TimeOut === timeOut
-);
+  // ✅ Improved duplicate validation
+  const duplicate = records.some(r =>
+    r.Employee === currentEmployee &&
+    r.Date === shiftDate &&
+    timeIn < r.TimeOut &&
+    timeOut > r.TimeIn
+  );
 
-if (duplicate) {
-  const warning = document.getElementById("warning");
-  warning.textContent = `⚠️ Duplicate entry blocked: ${shiftDate} (${timeIn} - ${timeOut}) for ${currentEmployee}`;
-  warning.classList.remove("d-none");
+  if (duplicate) {
+    const warning = document.getElementById("warning");
+    warning.textContent = `⚠️ Duplicate entry blocked: ${shiftDate} (${timeIn} - ${timeOut}) for ${currentEmployee}`;
+    warning.classList.remove("d-none");
 
-  warning.classList.add("shake");
-  setTimeout(() => warning.classList.remove("shake"), 500);
+    warning.classList.add("shake");
+    setTimeout(() => warning.classList.remove("shake"), 500);
 
-  // Optional: auto-hide after 3 seconds
-  setTimeout(() => {
-    warning.classList.add("d-none");
-  }, 3000);
+    setTimeout(() => {
+      warning.classList.add("d-none");
+    }, 3000);
 
-  return;
-}
+    return;
+  }
 
 
   const hoursRendered = calculateRenderedHours(timeIn, timeOut);
