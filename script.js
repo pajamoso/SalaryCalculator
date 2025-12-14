@@ -67,7 +67,10 @@ if (duplicate) {
   const allowance = 50;
   const grandTotal = totalPay + allowance;
 
+  const recordId = `${currentEmployee}__${shiftDate}__${timeIn}__${timeOut}`;
+
   records.push({
+    Id: recordId,
     Date: shiftDate,
     Employee: currentEmployee,
     TimeIn: timeIn,
@@ -79,6 +82,7 @@ if (duplicate) {
     Allowance: allowance.toFixed(2),
     Total: grandTotal.toFixed(2)
   });
+
 
   renderDashboard();
   resetInputs();
@@ -144,9 +148,10 @@ function renderDashboard() {
 
   const recordsDiv = document.getElementById(`records-${currentEmployee}`);
   recordsDiv.innerHTML = "";
-  employeeRecords.forEach(r => {
+
+  employeeRecords.forEach((r, index) => {
     const canRemove = Boolean(currentEmployee && currentEmployee === r.Employee);
-    
+
     recordsDiv.innerHTML += `
       <div class="dashboard-card">
         <div><strong>${r.Date}</strong></div>
@@ -154,10 +159,11 @@ function renderDashboard() {
         <div>Regular: ₱${r.RegularPay}</div>
         <div>OT: ₱${r.OTPay}</div>
         <div class="amount">₱${r.Total}</div>
-        ${canRemove ? `<button class="btn btn-sm btn-outline-danger mt-2" onclick="removeRecord('${r.Employee}', ${index})">Remove</button>` : ""}
+        ${canRemove ? `<button class="btn btn-sm btn-outline-danger mt-2" onclick="removeRecord('${r.Id}')">Remove</button>` : ""}
       </div>
     `;
   });
+
 }
 
 function newEmployee() {
@@ -222,21 +228,19 @@ function editEmployee(employee) {
   dailyRateInput.value = lastRecord.DailyRate;
 }
 
-function removeRecord(employee, index) {
-  // Find all records for this employee
-  const employeeRecords = records.filter(r => r.Employee === employee);
+function removeRecord(id) {
+  const idx = records.findIndex(r => r.Id === id);
+  if (idx === -1) return;
 
-  // Remove the specific record by index
-  const recordToRemove = employeeRecords[index];
-  const recordIndex = records.findIndex(r =>
-    r.Employee === recordToRemove.Employee &&
-    r.Date === recordToRemove.Date &&
-    r.TimeIn === recordToRemove.TimeIn &&
-    r.TimeOut === recordToRemove.TimeOut
-  );
+  const rec = records[idx];
 
-  if (recordIndex !== -1) {
-    records.splice(recordIndex, 1);
+  if (!currentEmployee || rec.Employee !== currentEmployee) {
+    alert("You can only remove records for the current employee.");
+    return;
+  }
+
+  if (confirm(`Remove record on ${rec.Date} (${rec.TimeIn} - ${rec.TimeOut}) for ${rec.Employee}?`)) {
+    records.splice(idx, 1);
     renderDashboard();
   }
 }
