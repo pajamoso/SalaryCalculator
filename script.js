@@ -1,6 +1,5 @@
 let records = [];
 let currentEmployee = null;
-let employeeTotal = 0;
 
 function computeSalary() {
   const nameInput = document.getElementById("employeeName");
@@ -9,8 +8,8 @@ function computeSalary() {
   const timeOut = document.getElementById("timeOut").value;
   const dailyRate = parseFloat(document.getElementById("dailyRate").value);
 
-  if (!name || !timeIn || !timeOut || !dailyRate) {
-    alert("Please complete all fields.");
+  if (!name || !timeIn || !timeOut || isNaN(dailyRate) || dailyRate <= 0) {
+    alert("Please complete all fields and ensure Daily Rate is a positive number.");
     return;
   }
 
@@ -21,16 +20,18 @@ function computeSalary() {
   }
 
   const hoursRendered = calculateRenderedHours(timeIn, timeOut);
+
+  // Daily rate is for 8 hours, so hourly rate is derived from it
   const hourlyRate = dailyRate / 8;
 
+  // Regular hours capped at 8
   const regularHours = Math.min(8, hoursRendered);
   const otHours = Math.max(0, hoursRendered - 8);
 
   const regularPay = regularHours * hourlyRate;
-  const otPay = otHours * hourlyRate * 1.25;
+  const otPay = otHours * hourlyRate * 1.25; // 125% OT rate
 
   const totalPay = regularPay + otPay;
-  employeeTotal += totalPay;
 
   records.push({
     Employee: currentEmployee,
@@ -41,18 +42,23 @@ function computeSalary() {
     OTPay: otPay.toFixed(2),
     Total: totalPay.toFixed(2)
   });
-
   renderDashboard();
   resetInputs();
 }
 
+
 function calculateRenderedHours(start, end) {
   const startTime = new Date(`1970-01-01T${start}`);
-  const endTime = new Date(`1970-01-01T${end}`);
+  let endTime = new Date(`1970-01-01T${end}`);
+
+  // Handle shifts that go past midnight
+  if (endTime <= startTime) {
+    endTime = new Date(`1970-01-02T${end}`);
+  }
 
   let hours = (endTime - startTime) / (1000 * 60 * 60);
 
-  // Lunch break deduction
+  // Lunch break deduction if employee started before 12nn
   if (startTime.getHours() < 12) {
     hours -= 1;
   }
@@ -63,33 +69,34 @@ function calculateRenderedHours(start, end) {
 function renderDashboard() {
   const dashboard = document.getElementById("dashboard");
   dashboard.innerHTML = "";
+  if (!currentEmployee) return;
+
+  const employeeRecords = records.filter(r => r.Employee === currentEmployee);
+  const subtotal = employeeRecords.reduce((s, r) => s + parseFloat(r.Total), 0);
 
   dashboard.innerHTML += `
     <div class="dashboard-card">
       <div class="dashboard-title">${currentEmployee}</div>
-      <div class="amount">Subtotal: ₱${employeeTotal.toFixed(2)}</div>
+      <div class="amount">Subtotal: ₱${subtotal.toFixed(2)}</div>
     </div>
   `;
 
-  records
-    .filter(r => r.Employee === currentEmployee)
-    .forEach(r => {
-      dashboard.innerHTML += `
-        <div class="dashboard-card">
-          <div>${r.Hours} hrs</div>
-          <div>Regular: ₱${r.RegularPay}</div>
-          <div>OT: ₱${r.OTPay}</div>
-          <div class="amount">₱${r.Total}</div>
-        </div>
-      `;
-    });
+  employeeRecords.forEach(r => {
+    dashboard.innerHTML += `
+      <div class="dashboard-card">
+        <div>${r.Hours} hrs</div>
+        <div>Regular: ₱${r.RegularPay}</div>
+        <div>OT: ₱${r.OTPay}</div>
+        <div class="amount">₱${r.Total}</div>
+      </div>
+    `;
+  });
 }
 
 function newEmployee() {
   document.getElementById("employeeName").disabled = false;
   document.getElementById("employeeName").value = "";
   currentEmployee = null;
-  employeeTotal = 0;
   document.getElementById("dashboard").innerHTML = "";
 }
 
