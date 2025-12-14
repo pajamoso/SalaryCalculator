@@ -161,6 +161,7 @@ function newEmployee() {
   document.getElementById("employeeName").disabled = false;
   document.getElementById("employeeName").value = "";
   document.getElementById("dailyRate").style.display = "block"; // re-enable for new employee
+  document.getElementById("dailyRate").disabled = false; 
   document.getElementById("dailyRate").value = "";
   currentEmployee = null;
 }
